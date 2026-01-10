@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            font-weight: 600;
+            color: #495057;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .item-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+        }
+
+        .item-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .item-type {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .type-lost {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .type-found {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-pending {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .status-returned {
+            background: #28a745;
+            color: white;
+        }
+
+        .item-details {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .item-details p {
+            margin-bottom: 8px;
+        }
+
+        .item-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-bar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            display: block;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            border-left: 4px solid #28a745;
+        }
+
+        .notification.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .file-upload {
+            border: 2px dashed #667eea;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            background: #f8f9fa;
+        }
+
+        .preview-image {
+            max-width: 200px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="notification" class="notification"></div>
+
+    <div class="container">
+        <header>
+            <h1>🔍 Lost & Found System</h1>
+            <p class="subtitle">Reuniting people with their belongings</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('submit')">Submit Item</button>
+            <button class="tab" onclick="switchTab('browse')">Browse Items</button>
+            <button class="tab" onclick="switchTab('admin')">Admin Panel</button>
+        </div>
+
+        <!-- Submit Item Tab -->
+        <div id="submit-tab" class="tab-content active">
+            <h2>Submit Lost or Found Item</h2>
+            <form id="submitForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Item Type *</label>
+                        <select id="type" required>
+                            <option value="">Select Type</option>
+                            <option value="lost">Lost Item</option>
+                            <option value="found">Found Item</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select id="category" required>
+                            <option value="">Select Category</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Books">Books</option>
+                            <option value="Keys">Keys</option>
+                            <option value="Bags">Bags</option>
+                            <option value="Accessories">Accessories</option>
+                            <option value="Documents">Documents</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Item Name *</label>
+                    <input type="text" id="name" required placeholder="e.g., iPhone 13 Pro">
+                </div>
+
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="description" required placeholder="Describe the item in detail..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date Lost/Found *</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Location *</label>
+                        <input type="text" id="location" required placeholder="e.g., Library 2nd Floor">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>School ID *</label>
+                        <input type="text" id="school_id" required placeholder="e.g., STU123456">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Email *</label>
+                        <input type="email" id="contact_email" required placeholder="your.email@school.edu">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Contact Phone *</label>
+                    <input type="tel" id="contact_phone" required placeholder="(123) 456-7890">
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Photo</label>
+                    <div class="file-upload" onclick="document.getElementById('photo').click()">
+                        <p>📷 Click to upload photo</p>
+                        <input type="file" id="photo" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                    </div>
+                    <img id="preview" class="preview-image hidden">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit Item</button>
+            </form>
+        </div>
+
+        <!-- Browse Items Tab -->
+        <div id="browse-tab" class="tab-content">
+            <h2>Browse Lost & Found Items</h2>
+            
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label>Filter by Type</label>
+                        <select id="filter-type" onchange="loadItems()">
+                            <option value="">All Types</option>
+                            <option value="lost">Lost Items</option>
+                            <option value="found">Found Items</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Filter by Category</label>
+                        <select id="filter-category" onchange="loadItems()">
+                            <option value="">All Categories</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Books">Books</option>
+                            <option value="Keys">Keys</option>
+                            <option value="Bags">Bags</option>
+                            <option value="Accessories">Accessories</option>
+                            <option value="Documents">Documents</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Filter by Status</label>
+                        <select id="filter-status" onchange="loadItems()">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="returned">Returned</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sort By</label>
+                        <select id="sort" onchange="loadItems()">
+                            <option value="name">Name (A-Z)</option>
+                            <option value="date">Date (Newest)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="items-container" class="items-grid"></div>
+        </div>
+
+        <!-- Admin Panel Tab -->
+        <div id="admin-tab" class="tab-content">
+            <div id="login-section">
+                <div class="login-form">
+                    <h2 style="text-align: center; margin-bottom: 30px;">Admin Login</h2>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="admin-username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="admin-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="admin-dashboard" class="hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Admin Dashboard</h2>
+                    <button class="btn btn-danger" onclick="logout()">Logout</button>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-row">
+                        <div class="form-group">
+                            <label>Filter by Type</label>
+                            <select id="admin-filter-type" onchange="loadAdminItems()">
+                                <option value="">All Types</option>
+                                <option value="lost">Lost Items</option>
+                                <option value="found">Found Items</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Filter by Status</label>
+                            <select id="admin-filter-status" onchange="loadAdminItems()">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="returned">Returned</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="admin-items-container" class="items-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_URL = 'http://localhost/lost_found/api.php';
+        let isAdmin = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadItems();
+            setupEventListeners();
+            
+            // Auto-refresh items every 30 seconds
+            setInterval(loadItems, 30000);
+        });
+
+        function setupEventListeners() {
+            document.getElementById('submitForm').addEventListener('submit', submitItem);
+            document.getElementById('loginForm').addEventListener('submit', adminLogin);
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            if(tabName === 'browse') {
+                loadItems();
+            } else if(tabName === 'admin' && isAdmin) {
+                loadAdminItems();
+            }
+        }
+
+        // Preview uploaded image
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('preview');
+            
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Submit new item
+        async function submitItem(e) {
+            e.preventDefault();
+            
+            let photoUrl = '';
+            
+            // Upload photo if exists
+            const photoFile = document.getElementById('photo').files[0];
+            if(photoFile) {
+                const formData = new FormData();
+                formData.append('photo', photoFile);
+                
+                try {
+                    const response = await fetch(`${API_URL}?request=upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    photoUrl = data.url || '';
+                } catch(error) {
+                    console.error('Upload error:', error);
+                }
+            }
+
+            // Submit item data
+            const itemData = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                category: document.getElementById('category').value,
+                type: document.getElementById('type').value,
+                date_lost: document.getElementById('type').value === 'lost' ? document.getElementById('date').value : null,
+                date_found: document.getElementById('type').value === 'found' ? document.getElementById('date').value : null,
+                location: document.getElementById('location').value,
+                contact_email: document.getElementById('contact_email').value,
+                contact_phone: document.getElementById('contact_phone').value,
+                school_id: document.getElementById('school_id').value,
+                photo_url: photoUrl
+            };
+
+            try {
+                const response = await fetch(`${API_URL}?request=items`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(itemData)
+                });
+
+                const data = await response.json();
+                
+                if(response.ok) {
+                    showNotification('Item submitted successfully!', 'success');
+                    document.getElementById('submitForm').reset();
+                    document.getElementById('preview').classList.add('hidden');
+                    loadItems();
+                } else {
+                    showNotification('Error submitting item', 'error');
+                }
+            } catch(error) {
+                console.error('Error:', error);
+                showNotification('Error submitting item', 'error');
+            }
+        }
+
+        // Load all items
+        async function loadItems() {
+            const type = document.getElementById('filter-type')?.value || '';
+            const category = document.getElementById('filter-category')?.value || '';
+            const status = document.getElementById('filter-status')?.value || '';
+            const sort = document.getElementById('sort')?.value || 'name';
+
+            try {
+                const response = await fetch(`${API_URL}?request=items&type=${type}&category=${category}&status=${status}&sort=${sort}`);
+                const items = await response.json();
+                
+                displayItems(items, 'items-container');
+            } catch(error) {
+                console.error('Error loading items:', error);
+            }
+        }
+
+        // Load admin items
+        async function loadAdminItems() {
+            const type = document.getElementById('admin-filter-type')?.value || '';
+            const status = document.getElementById('admin-filter-status')?.value || '';
+
+            try {
+                const response = await fetch(`${API_URL}?request=items&type=${type}&status=${status}`);
+                const items = await response.json();
+                
+                displayItems(items, 'admin-items-container', true);
+            } catch(error) {
+                console.error('Error loading items:', error);
+            }
+        }
+
+        // Display items
+        function displayItems(items, containerId, showAdminActions = false) {
+            const container = document.getElementById(containerId);
+            
+            if(items.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No items found</p>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => `
+                <div class="item-card">
+                    ${item.photo_url ? `<img src="${item.photo_url}" class="item-image" alt="${item.name}">` : 
+                      '<div class="item-image" style="display: flex; align-items: center; justify-content: center; font-size: 48px;">📦</div>'}
+                    
+                    <div>
+                        <span class="item-type type-${item.type}">${item.type.toUpperCase()}</span>
+                        <span class="status-badge status-${item.status}">${item.status.toUpperCase()}</span>
+                    </div>
+                    
+                    <h3 class="item-title">${item.name}</h3>
+                    
+                    <div class="item-details">
+                        <p><strong>Category:</strong> ${item.category}</p>
+                        <p><strong>Description:</strong> ${item.description}</p>
+                        <p><strong>Location:</strong> ${item.location}</p>
+                        <p><strong>Date:</strong> ${item.type === 'lost' ? item.date_lost : item.date_found}</p>
+                        <p><strong>Contact:</strong> ${item.contact_email}</p>
+                        <p><strong>Phone:</strong> ${item.contact_phone}</p>
+                        <p><strong>School ID:</strong> ${item.school_id}</p>
+                    </div>
+
+                    ${showAdminActions ? `
+                        <div class="item-actions">
+                            ${item.status === 'pending' ? 
+                                `<button class="btn btn-success" onclick="markAsReturned(${item.id}, '${item.contact_email}')">Mark as Returned</button>` : ''}
+                            <button class="btn btn-danger" onclick="deleteItem(${item.id})">Delete</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Admin login
+        async function adminLogin(e) {
+            e.preventDefault();
+            
+            const credentials = {
+                username: document.getElementById('admin-username').value,
+                password: document.getElementById('admin-password').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}?request=login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(credentials)
+                });
+
+                const data = await response.json();
+                
+                if(response.ok) {
+                    isAdmin = true;
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('admin-dashboard').classList.remove('hidden');
+                    showNotification('Login successful!', 'success');
+                    loadAdminItems();
+                } else {
+                    showNotification('Invalid credentials', 'error');
+                }
+            } catch(error) {
+                console.error('Login error:', error);
+                showNotification('Login failed', 'error');
+            }
+        }
+
+        // Logout
+        function logout() {
+            isAdmin = false;
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        // Mark item as returned
+        async function markAsReturned(id, email) {
+            const updateData = {
+                id: id,
+                status: 'returned',
+                date_returned: new Date().toISOString().split('T')[0],
+                contact_email: email
+            };
+
+            try {
+                const response = await fetch(`${API_URL}?request=items`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if(response.ok) {
+                    showNotification('Item marked as returned!', 'success');
+                    loadAdminItems();
+                } else {
+                    showNotification('Error updating item', 'error');
+                }
+            } catch(error) {
+                console.error('Error:', error);
+                showNotification('Error updating item', 'error');
+            }
+        }
+
+        // Delete item
+        async function deleteItem(id) {
+            if(!confirm('Are you sure you want to delete this item?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}?request=items&id=${id}`, {
+                    method: 'DELETE'
+                });
+
+                if(response.ok) {
+                    showNotification('Item deleted successfully!', 'success');
+                    loadAdminItems();
+                } else {
+                    showNotification('Error deleting item', 'error');
+                }
+            } catch(error) {
+                console.error('Error:', error);
+                showNotification('Error deleting item', 'error');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
