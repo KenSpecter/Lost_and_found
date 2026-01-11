@@ -148,6 +148,11 @@
             color: white;
         }
 
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
         .items-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -236,6 +241,7 @@
             margin-top: 15px;
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .filter-bar {
@@ -320,6 +326,50 @@
             border-radius: 8px;
         }
 
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .admin-nav button {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .admin-nav button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .admin-nav button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .welcome-message {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
         @media (max-width: 768px) {
             .items-grid {
                 grid-template-columns: 1fr;
@@ -331,6 +381,11 @@
 
             h1 {
                 font-size: 1.8em;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 15px;
             }
         }
     </style>
@@ -345,93 +400,14 @@
         </header>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('submit')">Submit Item</button>
-            <button class="tab" onclick="switchTab('browse')">Browse Items</button>
-            <button class="tab" onclick="switchTab('admin')">Admin Panel</button>
+            <button class="tab active" onclick="switchTab('browse')">Browse Items</button>
+            <button class="tab" onclick="switchTab('admin')">Admin Login</button>
         </div>
 
-        <!-- Submit Item Tab -->
-        <div id="submit-tab" class="tab-content active">
-            <h2>Submit Lost or Found Item</h2>
-            <form id="submitForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Item Type *</label>
-                        <select id="type" required>
-                            <option value="">Select Type</option>
-                            <option value="lost">Lost Item</option>
-                            <option value="found">Found Item</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Category *</label>
-                        <select id="category" required>
-                            <option value="">Select Category</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Clothing">Clothing</option>
-                            <option value="Books">Books</option>
-                            <option value="Keys">Keys</option>
-                            <option value="Bags">Bags</option>
-                            <option value="Accessories">Accessories</option>
-                            <option value="Documents">Documents</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Item Name *</label>
-                    <input type="text" id="name" required placeholder="e.g., iPhone 13 Pro">
-                </div>
-
-                <div class="form-group">
-                    <label>Description *</label>
-                    <textarea id="description" required placeholder="Describe the item in detail..."></textarea>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Date Lost/Found *</label>
-                        <input type="date" id="date" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Location *</label>
-                        <input type="text" id="location" required placeholder="e.g., Library 2nd Floor">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>School ID *</label>
-                        <input type="text" id="school_id" required placeholder="e.g., STU123456">
-                    </div>
-                    <div class="form-group">
-                        <label>Contact Email *</label>
-                        <input type="email" id="contact_email" required placeholder="your.email@school.edu">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Contact Phone *</label>
-                    <input type="tel" id="contact_phone" required placeholder="(123) 456-7890">
-                </div>
-
-                <div class="form-group">
-                    <label>Upload Photo</label>
-                    <div class="file-upload" onclick="document.getElementById('photo').click()">
-                        <p>📷 Click to upload photo</p>
-                        <input type="file" id="photo" accept="image/*" style="display: none;" onchange="previewImage(event)">
-                    </div>
-                    <img id="preview" class="preview-image hidden">
-                </div>
-
-                <button type="submit" class="btn btn-primary">Submit Item</button>
-            </form>
-        </div>
-
-        <!-- Browse Items Tab -->
-        <div id="browse-tab" class="tab-content">
+        <!-- Browse Items Tab (Public) -->
+        <div id="browse-tab" class="tab-content active">
             <h2>Browse Lost & Found Items</h2>
+            <p style="color: #666; margin-bottom: 20px;">Search for your lost items or check if someone found what you're looking for.</p>
             
             <div class="filter-bar">
                 <div class="filter-row">
@@ -483,6 +459,7 @@
             <div id="login-section">
                 <div class="login-form">
                     <h2 style="text-align: center; margin-bottom: 30px;">Admin Login</h2>
+                    <p style="text-align: center; color: #666; margin-bottom: 20px;">Login to manage lost & found items</p>
                     <form id="loginForm">
                         <div class="form-group">
                             <label>Username</label>
@@ -498,33 +475,149 @@
             </div>
 
             <div id="admin-dashboard" class="hidden">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>Admin Dashboard</h2>
+                <div class="admin-header">
+                    <div>
+                        <h2>Admin Dashboard</h2>
+                        <p style="color: #666; margin-top: 5px;">Manage all lost & found items</p>
+                    </div>
                     <button class="btn btn-danger" onclick="logout()">Logout</button>
                 </div>
 
-                <div class="filter-bar">
-                    <div class="filter-row">
-                        <div class="form-group">
-                            <label>Filter by Type</label>
-                            <select id="admin-filter-type" onchange="loadAdminItems()">
-                                <option value="">All Types</option>
-                                <option value="lost">Lost Items</option>
-                                <option value="found">Found Items</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Filter by Status</label>
-                            <select id="admin-filter-status" onchange="loadAdminItems()">
-                                <option value="">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="returned">Returned</option>
-                            </select>
-                        </div>
-                    </div>
+                <div class="admin-nav">
+                    <button class="active" onclick="showAdminSection('manage')">Manage Items</button>
+                    <button onclick="showAdminSection('add')">Add New Item</button>
                 </div>
 
-                <div id="admin-items-container" class="items-grid"></div>
+                <!-- Add New Item Section -->
+                <div id="admin-add-section" class="hidden">
+                    <div class="welcome-message">
+                        <h3>➕ Add New Lost or Found Item</h3>
+                        <p style="margin-top: 10px; color: #666;">Fill in the details below to add a new item to the system.</p>
+                    </div>
+
+                    <form id="submitForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Item Type *</label>
+                                <select id="type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="lost">Lost Item</option>
+                                    <option value="found">Found Item</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Category *</label>
+                                <select id="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Clothing">Clothing</option>
+                                    <option value="Books">Books</option>
+                                    <option value="Keys">Keys</option>
+                                    <option value="Bags">Bags</option>
+                                    <option value="Accessories">Accessories</option>
+                                    <option value="Documents">Documents</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Item Name *</label>
+                            <input type="text" id="name" required placeholder="e.g., iPhone 13 Pro">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description *</label>
+                            <textarea id="description" required placeholder="Describe the item in detail..."></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date Lost/Found *</label>
+                                <input type="date" id="date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Location *</label>
+                                <input type="text" id="location" required placeholder="e.g., Library 2nd Floor">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>School ID *</label>
+                                <input type="text" id="school_id" required placeholder="e.g., STU123456">
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Email *</label>
+                                <input type="email" id="contact_email" required placeholder="student@school.edu">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Contact Phone *</label>
+                            <input type="tel" id="contact_phone" required placeholder="(123) 456-7890">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Upload Photo</label>
+                            <div class="file-upload" onclick="document.getElementById('photo').click()">
+                                <p>📷 Click to upload photo</p>
+                                <input type="file" id="photo" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                            </div>
+                            <img id="preview" class="preview-image hidden">
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-primary">Add Item</button>
+                            <button type="button" class="btn btn-secondary" onclick="showAdminSection('manage')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Manage Items Section -->
+                <div id="admin-manage-section">
+                    <div class="welcome-message">
+                        <h3>📋 Manage All Items</h3>
+                        <p style="margin-top: 10px; color: #666;">View, update status, or delete items from the system.</p>
+                    </div>
+
+                    <div class="filter-bar">
+                        <div class="filter-row">
+                            <div class="form-group">
+                                <label>Filter by Type</label>
+                                <select id="admin-filter-type" onchange="loadAdminItems()">
+                                    <option value="">All Types</option>
+                                    <option value="lost">Lost Items</option>
+                                    <option value="found">Found Items</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Filter by Category</label>
+                                <select id="admin-filter-category" onchange="loadAdminItems()">
+                                    <option value="">All Categories</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Clothing">Clothing</option>
+                                    <option value="Books">Books</option>
+                                    <option value="Keys">Keys</option>
+                                    <option value="Bags">Bags</option>
+                                    <option value="Accessories">Accessories</option>
+                                    <option value="Documents">Documents</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Filter by Status</label>
+                                <select id="admin-filter-status" onchange="loadAdminItems()">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="returned">Returned</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="admin-items-container" class="items-grid"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -566,6 +659,26 @@
             }
         }
 
+        // Admin section switching
+        function showAdminSection(section) {
+            const manageSection = document.getElementById('admin-manage-section');
+            const addSection = document.getElementById('admin-add-section');
+            const navButtons = document.querySelectorAll('.admin-nav button');
+
+            navButtons.forEach(btn => btn.classList.remove('active'));
+
+            if(section === 'manage') {
+                manageSection.classList.remove('hidden');
+                addSection.classList.add('hidden');
+                navButtons[0].classList.add('active');
+                loadAdminItems();
+            } else {
+                manageSection.classList.add('hidden');
+                addSection.classList.remove('hidden');
+                navButtons[1].classList.add('active');
+            }
+        }
+
         // Preview uploaded image
         function previewImage(event) {
             const file = event.target.files[0];
@@ -581,7 +694,7 @@
             }
         }
 
-        // Submit new item
+        // Submit new item (Admin only)
         async function submitItem(e) {
             e.preventDefault();
             
@@ -632,20 +745,20 @@
                 const data = await response.json();
                 
                 if(response.ok) {
-                    showNotification('Item submitted successfully!', 'success');
+                    showNotification('Item added successfully!', 'success');
                     document.getElementById('submitForm').reset();
                     document.getElementById('preview').classList.add('hidden');
-                    loadItems();
+                    showAdminSection('manage');
                 } else {
-                    showNotification('Error submitting item', 'error');
+                    showNotification('Error adding item', 'error');
                 }
             } catch(error) {
                 console.error('Error:', error);
-                showNotification('Error submitting item', 'error');
+                showNotification('Error adding item', 'error');
             }
         }
 
-        // Load all items
+        // Load all items (Public view)
         async function loadItems() {
             const type = document.getElementById('filter-type')?.value || '';
             const category = document.getElementById('filter-category')?.value || '';
@@ -656,7 +769,7 @@
                 const response = await fetch(`${API_URL}?request=items&type=${type}&category=${category}&status=${status}&sort=${sort}`);
                 const items = await response.json();
                 
-                displayItems(items, 'items-container');
+                displayItems(items, 'items-container', false);
             } catch(error) {
                 console.error('Error loading items:', error);
             }
@@ -665,10 +778,11 @@
         // Load admin items
         async function loadAdminItems() {
             const type = document.getElementById('admin-filter-type')?.value || '';
+            const category = document.getElementById('admin-filter-category')?.value || '';
             const status = document.getElementById('admin-filter-status')?.value || '';
 
             try {
-                const response = await fetch(`${API_URL}?request=items&type=${type}&status=${status}`);
+                const response = await fetch(`${API_URL}?request=items&type=${type}&category=${category}&status=${status}`);
                 const items = await response.json();
                 
                 displayItems(items, 'admin-items-container', true);
@@ -744,7 +858,7 @@
                     document.getElementById('login-section').classList.add('hidden');
                     document.getElementById('admin-dashboard').classList.remove('hidden');
                     showNotification('Login successful!', 'success');
-                    loadAdminItems();
+                    showAdminSection('manage');
                 } else {
                     showNotification('Invalid credentials', 'error');
                 }
@@ -760,6 +874,7 @@
             document.getElementById('login-section').classList.remove('hidden');
             document.getElementById('admin-dashboard').classList.add('hidden');
             document.getElementById('loginForm').reset();
+            showNotification('Logged out successfully', 'success');
         }
 
         // Mark item as returned
