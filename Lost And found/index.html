@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00441B 0%, #0B6B3A 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -28,7 +28,7 @@
         }
 
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00441B 0%, #0B6B3A 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -68,10 +68,10 @@
         }
 
         .tab.active {
-            background: white;
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-        }
+         background: white;
+         color: #00441B;
+         border-bottom: 3px solid #C9A227;
+         }
 
         .tab-content {
             display: none;
@@ -103,8 +103,7 @@
         }
 
         input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
+            border-color: #00441B;
         }
 
         textarea {
@@ -128,15 +127,16 @@
             transition: all 0.3s;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+       .btn-primary {
+             background: linear-gradient(135deg, #00441B 0%, #0B6B3A 100%);
+             color: white;
         }
 
+
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
+             box-shadow: 0 5px 20px rgba(0, 68, 27, 0.4);
+     }
+
 
         .btn-danger {
             background: #dc3545;
@@ -308,7 +308,7 @@
         }
 
         .file-upload {
-            border: 2px dashed #667eea;
+            border: 2px dashed #C9A227;
             padding: 30px;
             text-align: center;
             border-radius: 8px;
@@ -335,12 +335,10 @@
             border-bottom: 2px solid #e0e0e0;
         }
 
-        .admin-nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
+       .admin-nav button {
+            border: 2px solid #00441B;
+            color: #00441B;
+      } 
         .admin-nav button {
             padding: 10px 20px;
             border: 2px solid #667eea;
@@ -352,22 +350,15 @@
             transition: all 0.3s;
         }
 
-        .admin-nav button.active {
-            background: #667eea;
-            color: white;
-        }
-
+        .admin-nav button.active,
         .admin-nav button:hover {
-            background: #667eea;
+            background: #00441B;
             color: white;
-        }
+        }   
 
         .welcome-message {
-            background: #e7f3ff;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #667eea;
+              background: #F5F5F0;
+              border-left: 4px solid #00441B;
         }
 
         @media (max-width: 768px) {
@@ -395,8 +386,8 @@
 
     <div class="container">
         <header>
-            <h1>🔍 Lost & Found System</h1>
-            <p class="subtitle">Reuniting people with their belongings</p>
+            <h1> Y-FIND🔍</h1>
+            <p class="subtitle">School Lost & Found System</p>
         </header>
 
         <div class="tabs">
@@ -458,7 +449,7 @@
         <div id="admin-tab" class="tab-content">
             <div id="login-section">
                 <div class="login-form">
-                    <h2 style="text-align: center; margin-bottom: 30px;">Admin Login</h2>
+                    <h2 style="text-align: center; margin-bottom: 30px; ">Admin Login</h2>
                     <p style="text-align: center; color: #666; margin-bottom: 20px;">Login to manage lost & found items</p>
                     <form id="loginForm">
                         <div class="form-group">
@@ -469,7 +460,9 @@
                             <label>Password</label>
                             <input type="password" id="admin-password" required>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                       <button type="submit" class="btn btn-primary" style="width: 100%; color: white;">
+  Login
+</button>
                     </form>
                 </div>
             </div>
@@ -568,7 +561,7 @@
                         </div>
 
                         <div style="display: flex; gap: 10px;">
-                            <button type="submit" class="btn btn-primary">Add Item</button>
+                            <button type="submit" class="btn btn-primary color: white">Add Item</button>
                             <button type="button" class="btn btn-secondary" onclick="showAdminSection('manage')">Cancel</button>
                         </div>
                     </form>
