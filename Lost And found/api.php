@@ -1,11 +1,19 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
-header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 require_once 'config.php';
+require_once 'email_config.php';
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Content-Type: application/json; charset=UTF-8");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 $database = new Database();
 $db = $database->getConnection();
@@ -25,9 +33,6 @@ switch($request) {
         break;
     case 'notifications':
         handleNotifications($db, $method);
-        break;
-    case 'match':
-        handleMatching($db);
         break;
     default:
         echo json_encode(array("message" => "Invalid endpoint"));
@@ -92,15 +97,9 @@ function getItems($db) {
 
     $query = "SELECT * FROM items WHERE 1=1";
     
-    if(!empty($category)) {
-        $query .= " AND category = :category";
-    }
-    if(!empty($status)) {
-        $query .= " AND status = :status";
-    }
-    if(!empty($type)) {
-        $query .= " AND type = :type";
-    }
+    if(!empty($category)) $query .= " AND category = :category";
+    if(!empty($status)) $query .= " AND status = :status";
+    if(!empty($type)) $query .= " AND type = :type";
     
     $query .= " ORDER BY " . ($sort === 'date' ? 'created_at DESC' : 'name ASC');
     
@@ -111,9 +110,7 @@ function getItems($db) {
     if(!empty($type)) $stmt->bindParam(':type', $type);
     
     $stmt->execute();
-    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    echo json_encode($items);
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
 }
 
 function createItem($db) {
@@ -125,7 +122,6 @@ function createItem($db) {
               :location, :contact_email, :contact_phone, :school_id, :photo_url)";
     
     $stmt = $db->prepare($query);
-    
     $stmt->bindParam(':name', $data->name);
     $stmt->bindParam(':description', $data->description);
     $stmt->bindParam(':category', $data->category);
@@ -140,7 +136,7 @@ function createItem($db) {
     
     if($stmt->execute()) {
         $item_id = $db->lastInsertId();
-        checkMatches($db, $item_id, $data);
+        checkMatchesWithEmail($db, $item_id, $data);
         echo json_encode(array("message" => "Item created", "id" => $item_id));
     } else {
         http_response_code(503);
@@ -149,21 +145,28 @@ function createItem($db) {
 }
 
 function updateItem($db) {
+    $emailService = new EmailNotification();
     $data = json_decode(file_get_contents("php://input"));
     
-    $query = "UPDATE items SET status = :status, date_returned = :date_returned 
-              WHERE id = :id";
+    // ✅ FIXED: First get item details
+    $selectQuery = "SELECT name, contact_email FROM items WHERE id = :id";
+    $selectStmt = $db->prepare($selectQuery);
+    $selectStmt->bindParam(':id', $data->id);
+    $selectStmt->execute();
+    $item = $selectStmt->fetch(PDO::FETCH_ASSOC);
     
-    $stmt = $db->prepare($query);
+    // ✅ FIXED: Then update the item
+    $updateQuery = "UPDATE items SET status = :status, date_returned = :date_returned WHERE id = :id";
+    $updateStmt = $db->prepare($updateQuery);
+    $updateStmt->bindParam(':status', $data->status);
+    $updateStmt->bindParam(':date_returned', $data->date_returned);
+    $updateStmt->bindParam(':id', $data->id);
     
-    $stmt->bindParam(':status', $data->status);
-    $stmt->bindParam(':date_returned', $data->date_returned);
-    $stmt->bindParam(':id', $data->id);
-    
-    if($stmt->execute()) {
-        if($data->status === 'returned') {
-            createNotification($db, $data->id, $data->contact_email, 
-                             "Your item has been marked as returned!", "status_change");
+    if($updateStmt->execute()) {
+        if($data->status === 'returned' && $item) {
+            $emailService->notifyItemReturned($item['name'], $item['contact_email']);
+            createNotification($db, $data->id, $item['contact_email'], 
+                "Your item has been marked as returned! Check your email for details.", "status_change");
         }
         
         echo json_encode(array("message" => "Item updated"));
@@ -175,7 +178,6 @@ function updateItem($db) {
 
 function deleteItem($db) {
     $id = isset($_GET['id']) ? $_GET['id'] : '';
-    
     $query = "DELETE FROM items WHERE id = :id";
     $stmt = $db->prepare($query);
     $stmt->bindParam(':id', $id);
@@ -191,7 +193,6 @@ function deleteItem($db) {
 function handleUpload() {
     if(isset($_FILES['photo'])) {
         $target_dir = "uploads/";
-        
         if (!file_exists($target_dir)) {
             mkdir($target_dir, 0777, true);
         }
@@ -199,15 +200,11 @@ function handleUpload() {
         $file_extension = pathinfo($_FILES["photo"]["name"], PATHINFO_EXTENSION);
         $file_name = uniqid() . '.' . $file_extension;
         $target_file = $target_dir . $file_name;
-        
         $allowed_types = array('jpg', 'jpeg', 'png', 'gif');
         
         if(in_array(strtolower($file_extension), $allowed_types)) {
             if(move_uploaded_file($_FILES["photo"]["tmp_name"], $target_file)) {
-                echo json_encode(array(
-                    "message" => "File uploaded",
-                    "url" => $target_file
-                ));
+                echo json_encode(array("message" => "File uploaded", "url" => $target_file));
             } else {
                 http_response_code(503);
                 echo json_encode(array("message" => "Upload failed"));
@@ -222,35 +219,47 @@ function handleUpload() {
 function handleNotifications($db, $method) {
     if($method === 'GET') {
         $email = isset($_GET['email']) ? $_GET['email'] : '';
-        
         $query = "SELECT n.*, i.name as item_name FROM notifications n 
                   JOIN items i ON n.item_id = i.id 
                   WHERE n.recipient_email = :email 
                   ORDER BY n.created_at DESC LIMIT 20";
-        
         $stmt = $db->prepare($query);
         $stmt->bindParam(':email', $email);
         $stmt->execute();
-        
         echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 }
 
 function createNotification($db, $item_id, $email, $message, $type) {
-    $query = "INSERT INTO notifications (item_id, recipient_email, message, type) 
-              VALUES (:item_id, :email, :message, :type)";
+    error_log("Creating notification for item_id: $item_id, email: $email");
     
-    $stmt = $db->prepare($query);
-    $stmt->bindParam(':item_id', $item_id);
-    $stmt->bindParam(':email', $email);
-    $stmt->bindParam(':message', $message);
-    $stmt->bindParam(':type', $type);
-    
-    return $stmt->execute();
+    try {
+        $query = "INSERT INTO notifications (item_id, recipient_email, message, type) 
+                  VALUES (:item_id, :email, :message, :type)";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':item_id', $item_id);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':message', $message);
+        $stmt->bindParam(':type', $type);
+        
+        $result = $stmt->execute();
+        error_log($result ? "✅ Notification created" : "❌ Notification failed");
+        return $result;
+    } catch(PDOException $e) {
+        error_log("❌ Notification error: " . $e->getMessage());
+        return false;
+    }
 }
 
-function checkMatches($db, $item_id, $new_item) {
+function checkMatchesWithEmail($db, $item_id, $new_item) {
+    error_log("=== MATCHING STARTED ===");
+    error_log("New item ID: " . $item_id);
+    error_log("New item type: " . $new_item->type);
+    error_log("New item name: " . $new_item->name);
+    
+    $emailService = new EmailNotification();
     $opposite_type = $new_item->type === 'lost' ? 'found' : 'lost';
+    error_log("Looking for opposite type: " . $opposite_type);
     
     $query = "SELECT * FROM items WHERE type = :type AND status = 'pending'";
     $stmt = $db->prepare($query);
@@ -258,35 +267,81 @@ function checkMatches($db, $item_id, $new_item) {
     $stmt->execute();
     
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    error_log("Found " . count($items) . " items to check");
+    
+    if(count($items) === 0) {
+        error_log("No items to compare - exiting");
+        return;
+    }
     
     foreach($items as $item) {
-        $similarity = similarText(
+        error_log("Checking item #" . $item['id'] . ": " . $item['name']);
+        
+        // ✅ FIXED: Use calculateSimilarity instead of similarText
+        $similarity = calculateSimilarity(
             strtolower($new_item->name . ' ' . $new_item->description),
             strtolower($item['name'] . ' ' . $item['description'])
         );
         
+        error_log("Similarity score: " . $similarity . "%");
+        
         if($similarity > 60) {
-            createNotification($db, $item_id, $new_item->contact_email,
-                "Potential match found for your " . $new_item->type . " item!", "match_found");
+            error_log("🎯 MATCH FOUND! Similarity: " . $similarity . "%");
             
-            createNotification($db, $item['id'], $item['contact_email'],
-                "Potential match found for your " . $item['type'] . " item!", "match_found");
+            $match_details = array(
+                'name' => $new_item->name,
+                'description' => $new_item->description,
+                'location' => $new_item->location,
+                'date' => $new_item->type === 'lost' ? $new_item->date_lost : $new_item->date_found,
+                'contact_email' => $new_item->contact_email
+            );
+            
+            error_log("Sending email to: " . $item['contact_email']);
+            $result1 = $emailService->notifyMatchFound(
+                $item['name'],
+                $item['contact_email'],
+                $item['type'],
+                $match_details
+            );
+            error_log("Email 1 result: " . ($result1 ? "SUCCESS" : "FAILED"));
+            
+            $existing_match_details = array(
+                'name' => $item['name'],
+                'description' => $item['description'],
+                'location' => $item['location'],
+                'date' => $item['type'] === 'lost' ? $item['date_lost'] : $item['date_found'],
+                'contact_email' => $item['contact_email']
+            );
+            
+            error_log("Sending email to: " . $new_item->contact_email);
+            $result2 = $emailService->notifyMatchFound(
+                $new_item->name,
+                $new_item->contact_email,
+                $new_item->type,
+                $existing_match_details
+            );
+            error_log("Email 2 result: " . ($result2 ? "SUCCESS" : "FAILED"));
+            
+            error_log("Creating notification for new item owner");
+            $notif1 = createNotification($db, $item_id, $new_item->contact_email,
+                "Potential match found! Check your email for details.", "match_found");
+            error_log("Notification 1 result: " . ($notif1 ? "SUCCESS" : "FAILED"));
+            
+            error_log("Creating notification for existing item owner");
+            $notif2 = createNotification($db, $item['id'], $item['contact_email'],
+                "Potential match found! Check your email for details.", "match_found");
+            error_log("Notification 2 result: " . ($notif2 ? "SUCCESS" : "FAILED"));
+            
+        } else {
+            error_log("No match - similarity too low (" . $similarity . "%)");
         }
     }
+    
+    error_log("=== MATCHING FINISHED ===");
 }
 
-function similarText($str1, $str2) {
+function calculateSimilarity($str1, $str2) {
     similar_text($str1, $str2, $percent);
     return $percent;
-}
-
-function handleMatching($db) {
-    checkMatches($db, 0, (object)array(
-        'type' => 'lost',
-        'name' => 'test',
-        'description' => 'test',
-        'contact_email' => 'test@test.com'
-    ));
-    echo json_encode(array("message" => "Matching completed"));
 }
 ?>
